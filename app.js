@@ -49,15 +49,26 @@ app.post('/api/customer/items/:itemId/purchases', function(req,res){
 
 app.get('/api/vendor/purchases', function(req,res){
   Transaction.find().then(function(results){
-    res.json({'status':'success', 'data':results)
+    res.json({'status':'success', 'data':results})
   })
 })
 
-app.post('/api/vendor/items/:itemId', function(req,res){
+app.post('/api/vendor/items/:itemid', function(req,res){
   let id = req.params.itemId;
-  Item.findOneAndUpdate({_id:new ObjectId(id)}, $set:{name:req.body.name, cost:req.body.cost, quantity:req.body.quantity})
+  Item.findOneAndUpdate({_id:new ObjectId(id)}, {$set:{name:req.body.name, cost:req.body.cost, quantity:req.body.quantity}})
   .then(function(){
     res.json({'status':'success'})
+  })
+})
+
+app.get('/api/vendor/money', function(req,res){
+  let profit = 0;
+  Transaction.find().then(function(results){
+    results.forEach(function(buy){
+      profit += buy.moneyGiven - buy.changeRecieved;
+    })
+  }).then(function(){
+    res.json({'profit':profit})
   })
 })
 
