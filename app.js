@@ -33,19 +33,29 @@ app.post('/api/vendor/items', function(req,res){
 
 app.post('/api/customer/items/:itemId/purchases', function(req,res){
   let id = req.params.itemId;
-  Item.findOneAndUpdate({_id: new ObjectId(id)}, {$inc:{quantity:-1}})
-  .then(function(results){
-    const transaction = new Transaction({
-      item:results.name,
-      moneyGiven:req.body.moneyGiven,
-      changeRecieved:req.body.moneyGiven-results.cost,
-      timeStamp:Date.now()
-    })
-    transaction.save().then(function(){
-      res.json({'status':'success'})
-    })
+  Item.findOne({_id: new ObjectId(id)}).then(function(results){
+    console.log(results);
+    // if(results.quantity < 0){
+    //   res.json({"status":"failure"})
+    // }
+    return results;
+  }).then(function (results){
+    Item.update({_id: new ObjectId(id)}, {$inc:{quantity:-1}})
+    return results;
   })
-})
+      .then(function(results){
+        const transaction = new Transaction({
+          item:results.name,
+          moneyGiven:req.body.moneyGiven,
+          changeRecieved:req.body.moneyGiven-results.cost,
+          timeStamp:Date.now()
+        })
+        transaction.save()
+        .then(function(){
+          res.json({'status':'success'})
+        })
+      })
+  })
 
 app.get('/api/vendor/purchases', function(req,res){
   Transaction.find().then(function(results){
